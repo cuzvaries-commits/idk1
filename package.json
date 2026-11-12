@@ -1,0 +1,10 @@
+{
+  "name": "slipstrike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "cat src/part1.js src/part2.js src/part3.js src/part4.js src/part5.js > public/game.js",
+    "dev": "node server.mjs",
+    "start": "node server.mjs"
+  }
+}
