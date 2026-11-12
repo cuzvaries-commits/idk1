@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>SLIPSTRIKE</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0a0d13;color:#fff;font-family:"Arial Black","Segoe UI Black",Impact,"Helvetica Neue",Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;outline:none}
+.hidden{display:none!important}
+.sk{font-style:italic;text-transform:uppercase;letter-spacing:.02em;text-shadow:0 2px 0 #000,0 0 8px rgba(0,0,0,.55)}
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+#hud{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#top{position:absolute;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px}
+.pips{display:flex;gap:5px}
+.pips span{width:22px;height:10px;transform:skewX(-18deg);background:rgba(255,255,255,.16);border:1px solid rgba(0,0,0,.5)}
+#pipsA span.on{background:#2f9bff;box-shadow:0 0 10px #2f9bff}
+#pipsB span.on{background:#ff8a1f;box-shadow:0 0 10px #ff8a1f}
+#clock{text-align:center;min-width:86px}
+#timer{font-size:28px;line-height:1}
+#roundLabel{font-size:11px;opacity:.8}
+#feed{position:absolute;right:12px;top:max(12px,env(safe-area-inset-top));display:flex;flex-direction:column;gap:4px;align-items:flex-end;font-size:12px}
+.frow{background:rgba(8,10,16,.72);padding:4px 9px;border-radius:4px;animation:feed 5s both}
+.frow i{opacity:.7;font-style:normal;margin:0 3px;font-family:Arial,sans-serif;font-weight:400}
+@keyframes feed{0%{opacity:0;transform:translateX(20px)}6%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
+#cross{position:absolute;left:50%;top:50%;width:0;height:0;--g:6px}
+#cross i{position:absolute;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.55)}
+#chT{width:2px;height:9px;left:-1px;bottom:var(--g)}
+#chB{width:2px;height:9px;left:-1px;top:var(--g)}
+#chL{height:2px;width:9px;top:-1px;right:var(--g)}
+#chR{height:2px;width:9px;top:-1px;left:var(--g)}
+#cross b{position:absolute;left:-1.5px;top:-1.5px;width:3px;height:3px;background:#fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.55)}
+#hitm{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;opacity:0;color:#fff}
+#hitm::before,#hitm::after{content:"";position:absolute;left:14px;top:0;width:3px;height:30px;background:linear-gradient(currentColor 0 32%,transparent 32% 68%,currentColor 68%)}
+#hitm::before{transform:rotate(45deg)}#hitm::after{transform:rotate(-45deg)}
+#hitm.show{animation:hit .22s ease-out both}
+@keyframes hit{0%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(.9)}}
+#dirHit{position:absolute;left:50%;top:50%;width:0;height:0;opacity:0}
+#dirHit i{position:absolute;left:-60px;top:-170px;width:120px;height:20px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,50,50,.95),rgba(255,50,50,0) 70%)}
+#scope{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 0,transparent 36vmin,#000 36.6vmin)}
+#scope::before,#scope::after{content:"";position:absolute;background:rgba(0,0,0,.85)}
+#scope::before{left:50%;top:0;bottom:0;width:1px}#scope::after{top:50%;left:0;right:0;height:1px}
+#hurtOv{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse at center,rgba(255,0,0,0) 45%,rgba(255,20,20,.6) 100%)}
+#flashOv{position:absolute;inset:0;opacity:0;background:#fff}
+#banner{position:absolute;left:0;right:0;top:20%;text-align:center;font-size:clamp(26px,6vw,62px);opacity:0}
+#banner.show{animation:ban 2.4s both}
+@keyframes ban{0%{opacity:0;transform:scale(1.6) skewX(-8deg)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+#big{position:absolute;left:0;right:0;top:32%;text-align:center;font-size:clamp(60px,14vw,150px);line-height:1}
+#spec{position:absolute;left:0;right:0;bottom:24%;text-align:center;font-size:18px}
+#lockHint{position:absolute;left:0;right:0;top:62%;text-align:center;font-size:14px;opacity:.9}
+#nums{position:absolute;inset:0}
+#nums span{position:absolute;left:0;top:0;font-size:20px;font-style:italic;text-shadow:0 2px 0 #000;will-change:transform,opacity}
+#hp{position:absolute;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
+#hpBar{width:min(240px,30vw);height:18px;background:rgba(8,10,16,.7);transform:skewX(-18deg);border:2px solid rgba(0,0,0,.6);overflow:hidden}
+#hpFill{height:100%;width:100%;background:#3fe07a;transition:width .12s}
+#hpText{font-size:34px;line-height:1}
+#ammo{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));text-align:right}
+#wname{font-size:13px;opacity:.85}
+#ammoMain{font-size:44px;line-height:1}
+#ammoSub{font-size:14px;opacity:.85;min-height:18px}
+#hotbar{position:absolute;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:6px}
+.slot{width:86px;padding:5px 7px;background:rgba(8,10,16,.66);border-bottom:3px solid transparent;transform:skewX(-10deg);font-size:10px}
+.slot.on{background:rgba(47,155,255,.4);border-bottom-color:#fff}
+.slot .k{opacity:.6}.slot .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.slot .a{font-size:12px;color:#ffd84a}
+#board{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(8,10,16,.9);padding:16px 20px;border-radius:8px;min-width:min(440px,90vw)}
+table{border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:14px}
+th,td{padding:5px 10px;text-align:right}th:first-child,td:first-child{text-align:left}
+th{font-size:11px;opacity:.6;font-weight:400}
+tr.me td{background:rgba(255,255,255,.08)}
+#touch{position:absolute;inset:0}
+#touch button{pointer-events:auto;position:absolute;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.4);font-size:11px;font-family:Arial,sans-serif;font-weight:700}
+#touch button:active{background:rgba(255,255,255,.4)}
+#tFire{right:26px;bottom:96px;width:84px;height:84px}
+#tJump{right:122px;bottom:60px;width:62px;height:62px}
+#tSlide{right:122px;bottom:134px;width:62px;height:62px}
+#tAim{right:34px;bottom:192px;width:62px;height:62px}
+#tReload{right:16px;top:70px;width:52px;height:52px}
+#tSwap{right:76px;top:70px;width:52px;height:52px}
+#tPause{left:16px;top:16px;width:46px;height:46px}
+#tJoy{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(255,255,255,.3);display:none}
+#tKnob{position:absolute;left:30px;top:30px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.4)}
+#menu{position:fixed;inset:0;display:flex;align-items:stretch;background:linear-gradient(90deg,rgba(8,10,16,.95),rgba(8,10,16,.72) 55%,rgba(8,10,16,.25));overflow:auto;padding:max(18px,env(safe-area-inset-top)) 22px 18px}
+.mwrap{width:min(780px,100%);margin:auto 0;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-size:clamp(40px,9vw,84px);line-height:.9;font-style:italic;letter-spacing:-.01em;text-shadow:4px 4px 0 #2f9bff,-3px -3px 0 #ff8a1f}
+.tag{font-family:Arial,sans-serif;font-size:13px;opacity:.75;margin-top:6px}
+#prof{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:13px}
+#xpBar{width:130px;height:8px;background:rgba(255,255,255,.14);display:inline-block;vertical-align:middle;margin-left:6px}
+#xpFill{display:block;height:100%;background:#2f9bff;width:0}
+#profKeys{color:#ffd84a}
+#tabs{display:flex;gap:6px;flex-wrap:wrap}
+#tabs button,.opt{background:rgba(255,255,255,.1);padding:9px 14px;font-size:13px;font-style:italic;text-transform:uppercase;transform:skewX(-10deg)}
+#tabs button.on,.opt.on{background:#2f9bff}
+.panel{background:rgba(12,15,23,.82);padding:16px;border-left:4px solid #ff8a1f;display:flex;flex-direction:column;gap:12px}
+.lbl{font-size:11px;opacity:.6;margin-bottom:5px;font-family:Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+#startBtn{background:linear-gradient(90deg,#ff8a1f,#ffb347);color:#10131a;font-size:26px;font-style:italic;padding:14px 34px;transform:skewX(-10deg);align-self:flex-start;box-shadow:0 6px 0 #a94f00}
+#startBtn:active{transform:skewX(-10deg) translateY(4px);box-shadow:0 2px 0 #a94f00}
+.lrow{margin-bottom:10px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.card{background:rgba(255,255,255,.08);padding:8px 10px;text-align:left;display:flex;flex-direction:column;gap:2px;border:2px solid transparent}
+.card b{font-size:13px;font-style:italic;text-transform:uppercase}
+.card span{font-family:Arial,sans-serif;font-size:11px;opacity:.7}
+.card i{font-size:11px;font-style:normal;color:#9fd0ff}
+.card.eq{border-color:#2f9bff;background:rgba(47,155,255,.22)}
+.card.lock{opacity:.72}.card.lock i{color:#ffd84a}
+.card.deny{animation:deny .25s}
+@keyframes deny{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.set{display:grid;grid-template-columns:150px 1fr 54px;gap:10px;align-items:center;font-family:Arial,sans-serif;font-size:13px}
+.set input[type=range]{width:100%}
+.chk{font-family:Arial,sans-serif;font-size:13px;display:flex;gap:8px;align-items:center}
+.help{font-family:Arial,sans-serif;font-size:13px;line-height:1.7;display:grid;grid-template-columns:auto 1fr;gap:2px 16px}
+.help kbd{background:rgba(255,255,255,.14);padding:1px 7px;border-radius:4px;font-family:inherit;font-weight:700}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,8,12,.8);padding:18px;overflow:auto}
+.box{background:rgba(12,15,23,.95);padding:22px;border-left:4px solid #2f9bff;display:flex;flex-direction:column;gap:14px;min-width:min(480px,100%);max-width:100%}
+.box h2{margin:0;font-size:clamp(30px,7vw,54px);font-style:italic;line-height:1}
+.btn{background:rgba(255,255,255,.12);padding:11px 18px;font-size:15px;font-style:italic;text-transform:uppercase;transform:skewX(-10deg)}
+.btn.pri{background:#2f9bff}
+#resReward{font-family:Arial,sans-serif;font-size:14px;color:#ffd84a}
+#fatal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0a0d13;padding:24px;text-align:center;font-family:Arial,sans-serif;z-index:9}
+@media (max-width:640px){.slot{width:64px;font-size:9px}#hotbar{bottom:max(64px,env(safe-area-inset-bottom))}.set{grid-template-columns:110px 1fr 44px}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+</head>
+<body>
+<canvas id="c" tabindex="0"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="hurtOv"></div>
+  <div id="scope" class="hidden"></div>
+  <div id="nums"></div>
+  <div id="top" class="sk"><div class="pips" id="pipsA"></div><div id="clock"><div id="timer">1:30</div><div id="roundLabel">ROUND 1</div></div><div class="pips" id="pipsB"></div></div>
+  <div id="feed" class="sk"></div>
+  <div id="cross"><i id="chT"></i><i id="chB"></i><i id="chL"></i><i id="chR"></i><b></b></div>
+  <div id="hitm"></div>
+  <div id="dirHit"><i></i></div>
+  <div id="banner" class="sk"></div>
+  <div id="big" class="sk"></div>
+  <div id="spec" class="sk hidden"></div>
+  <div id="lockHint" class="sk hidden">click to capture the mouse</div>
+  <div id="hp" class="sk"><div id="hpBar"><div id="hpFill"></div></div><div id="hpText">150</div></div>
+  <div id="ammo" class="sk"><div id="wname"></div><div id="ammoMain"></div><div id="ammoSub"></div></div>
+  <div id="hotbar" class="sk"></div>
+  <div id="board" class="hidden"></div>
+  <div id="touch" class="hidden">
+    <div id="tJoy"><div id="tKnob"></div></div>
+    <button id="tFire" data-act="fire">FIRE</button>
+    <button id="tJump" data-act="jump">JUMP</button>
+    <button id="tSlide" data-act="slide">SLIDE</button>
+    <button id="tAim" data-act="alt">AIM</button>
+    <button id="tReload" data-act="reload">R</button>
+    <button id="tSwap" data-act="swap">SWAP</button>
+    <button id="tPause" data-act="pause">II</button>
+  </div>
+  <div id="flashOv"></div>
+</div>
+
+<div id="menu">
+  <div class="mwrap">
+    <div><h1 id="title">SLIPSTRIKE</h1><div class="tag">Round based arena duels. First to five. Slide, jump, shoot.</div></div>
+    <div id="prof" class="sk">
+      <span id="profLevel">LVL 1</span><span>XP<span id="xpBar"><span id="xpFill"></span></span></span>
+      <span id="profKeys">0 KEYS</span><span id="profWL">0W 0L</span>
+    </div>
+    <div id="tabs"><button data-tab="pPlay" class="on">Play</button><button data-tab="pLoad">Loadout</button><button data-tab="pSet">Settings</button><button data-tab="pHelp">Controls</button></div>
+    <div id="pPlay" class="panel">
+      <div><div class="lbl">Duel size</div><div class="row" id="sizeBtns"></div></div>
+      <div><div class="lbl">Map</div><div class="row" id="mapBtns"></div></div>
+      <div><div class="lbl">Bot difficulty</div><div class="row" id="diffBtns"></div></div>
+      <button id="startBtn">START DUEL</button>
+    </div>
+    <div id="pLoad" class="panel hidden"><div id="loadGrid"></div></div>
+    <div id="pSet" class="panel hidden">
+      <div class="set"><label for="setSens">Mouse sensitivity</label><input id="setSens" type="range" min="0.2" max="3" step="0.05"><span id="vSens"></span></div>
+      <div class="set"><label for="setFov">Field of view</label><input id="setFov" type="range" min="60" max="110" step="1"><span id="vFov"></span></div>
+      <div class="set"><label for="setVol">Volume</label><input id="setVol" type="range" min="0" max="1" step="0.05"><span id="vVol"></span></div>
+      <label class="chk"><input id="setShake" type="checkbox"> Screen shake and speed FOV kick</label>
+      <label class="chk"><input id="setUnlock" type="checkbox"> Sandbox: unlock every weapon</label>
+    </div>
+    <div id="pHelp" class="panel hidden">
+      <div class="help">
+        <kbd>W A S D</kbd><span>Move</span>
+        <kbd>Space</kbd><span>Jump, hold to keep hopping. Fists give a double jump</span>
+        <kbd>C / Shift / Ctrl</kbd><span>Crouch. While running it starts a slide. Jump out of a slide to keep the speed</span>
+        <kbd>Left mouse</kbd><span>Fire. Hold a grenade to cook it</span>
+        <kbd>Right mouse</kbd><span>Aim. With Katana it blocks, with Scythe it dashes</span>
+        <kbd>R</kbd><span>Reload</span>
+        <kbd>1 2 3 4 / Wheel</kbd><span>Primary, secondary, melee, utility</span>
+        <kbd>Q</kbd><span>Previous weapon</span>
+        <kbd>Tab</kbd><span>Scoreboard</span>
+        <kbd>Esc</kbd><span>Pause</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pause" class="overlay hidden"><div class="box"><h2>PAUSED</h2><div class="row"><button class="btn pri" id="resumeBtn">Resume</button><button class="btn" id="quitBtn">Quit to menu</button></div></div></div>
+<div id="results" class="overlay hidden"><div class="box"><h2 id="resTitle">VICTORY</h2><div id="resScore" class="sk"></div><div id="resTable"></div><div id="resReward"></div><div class="row"><button class="btn pri" id="againBtn">Play again</button><button class="btn" id="menuBtn">Menu</button></div></div></div>
+<div id="fatal" class="hidden"></div>
+
+<script type="module" src="./game.js"></script>
+</body>
+</html>
